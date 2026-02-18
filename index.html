@@ -1,0 +1,295 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>EDU AI PRO - 7. Sınıf</title>
+    <style>
+        :root { --p: #1e3a8a; --s: #3b82f6; --acc: #ef4444; --bg: #f1f5f9; --suc: #22c55e; --war: #f59e0b; }
+        body { font-family: 'Segoe UI', sans-serif; background: var(--bg); margin: 0; padding: 20px; display: flex; justify-content: center; }
+        .card { background: white; width: 100%; max-width: 900px; border-radius: 15px; box-shadow: 0 10px 25px rgba(0,0,0,0.1); overflow: hidden; }
+        .header { background: linear-gradient(135deg, var(--p), var(--s)); color: white; padding: 20px; text-align: center; }
+        #toast-container { position: fixed; top: 20px; right: 20px; z-index: 9999; }
+        .toast { padding: 15px 25px; border-radius: 10px; color: white; margin-bottom: 10px; box-shadow: 0 4px 12px rgba(0,0,0,0.2); animation: slideIn 0.5s ease forwards; font-weight: bold; }
+        @keyframes slideIn { from { transform: translateX(100%); opacity: 0; } to { transform: translateX(0); opacity: 1; } }
+        .toast.success { background: var(--suc); }
+        .toast.error { background: var(--acc); }
+        .stats { display: flex; justify-content: space-around; align-items: center; background: #fff; padding: 15px; border-bottom: 3px solid #e2e8f0; font-weight: bold; }
+        .rozet-box { background: #fef3c7; padding: 5px 15px; border-radius: 20px; border: 1px solid #f59e0b; color: #b45309; font-size: 18px; }
+        .content { padding: 25px; min-height: 500px; }
+        .btn { display: block; width: 100%; padding: 15px; margin: 10px 0; border: 2px solid #cbd5e1; border-radius: 10px; background: white; color: var(--p); font-size: 17px; font-weight: bold; cursor: pointer; text-align: left; transition: 0.2s; }
+        .btn:hover { background: #eff6ff; border-color: var(--s); }
+        .opt-btn { display: block; width: 100%; padding: 12px; margin: 8px 0; border: 1px solid #ddd; border-radius: 8px; cursor: pointer; text-align: left; background: #fff; font-size: 16px; }
+        .hidden { display: none !important; }
+        .badge { background: var(--acc); color: white; padding: 2px 8px; border-radius: 10px; font-size: 12px; float: right; margin-left: 5px; }
+        .summary-box { background: #e0f2fe; padding: 20px; border-radius: 10px; margin-bottom: 15px; border-left: 5px solid var(--s); }
+        .wrong-item { background: #fff1f2; border: 1px solid #fecaca; padding: 15px; margin-bottom: 10px; border-radius: 8px; }
+        .auth-container { max-width: 400px; margin: 50px auto; padding: 20px; border: 1px solid #ddd; border-radius: 10px; }
+        .auth-input { width: 100%; padding: 12px; margin: 10px 0; border: 1px solid #ccc; border-radius: 5px; box-sizing: border-box; }
+        .auth-switch { text-align: center; margin-top: 15px; cursor: pointer; color: var(--s); text-decoration: underline; }
+        
+        /* Yeni İpucu Stilleri */
+        .hint-btn { background: var(--war); color: white; border: none; padding: 8px 15px; border-radius: 8px; cursor: pointer; font-weight: bold; margin-top: 10px; display: block; }
+        .hint-box { background: #fffbeb; border: 1px solid #fde68a; color: #92400e; padding: 15px; border-radius: 8px; margin-top: 10px; font-style: italic; display: none; }
+    </style>
+</head>
+<body>
+
+<div id="toast-container"></div>
+
+<div class="card">
+    <div class="header"><h1>🎓 EDU AI PRO</h1></div>
+
+    <div id="auth-screen" class="content">
+        <div class="auth-container">
+            <h2 id="auth-title" style="text-align:center;">Giriş Yap</h2>
+            <input type="text" id="auth-user" class="auth-input" placeholder="Kullanıcı Adı">
+            <input type="password" id="auth-pass" class="auth-input" placeholder="Şifre">
+            <button class="btn" style="text-align:center; background: var(--p); color: white;" onclick="handleAuth()" id="auth-btn">Giriş Yap</button>
+            <div class="auth-switch" onclick="toggleAuth()" id="auth-toggle">Hesabın yok mu? Kayıt Ol</div>
+        </div>
+    </div>
+
+    <div id="main-panel" class="hidden">
+        <div class="stats">
+            <span>💎 XP: <span id="xp">0</span></span>
+            <div class="rozet-box">🏆 Rozetler: <span id="rz">0</span></div>
+            <span>🎖️ Seviye: <span id="lvl">1</span></span>
+        </div>
+
+        <div id="m-menu" class="content">
+            <h3 id="welcome-msg">Hoş Geldin!</h3>
+            <button class="btn" onclick="showLessons()">📚 Dersler</button>
+            <button class="btn" style="background: #fef3c7; border-color: #f59e0b;" onclick="startChallenge()">⚡ Challenge Modu (Karma 10 Soru)</button>
+            <button class="btn" style="color: #1e3a8a; border-color: #1e3a8a;" onclick="openMissing()">🚨 Eksik Olduğun Konular <span id="m-count" class="badge">0</span></button>
+            <button class="btn" style="background: #fee2e2; border-color: var(--acc); color: var(--acc);" onclick="openWrongList()">❌ Yanlış Sorular <span id="w-count" class="badge">0</span></button>
+            <button class="btn" style="margin-top:20px; background:#6c757d; color:white; border:none; text-align:center;" onclick="logout()">Çıkış Yap</button>
+        </div>
+
+        <div id="lesson-menu" class="content hidden">
+            <button onclick="showMain()" class="btn" style="width:auto; padding:5px 15px;">⬅ Geri</button>
+            <button class="btn" onclick="openLesson('Matematik')">📐 Matematik</button>
+            <button class="btn" onclick="openLesson('Fen')">🔬 Fen Bilimleri</button>
+            <button class="btn" onclick="openLesson('Turkce')">📖 Türkçe</button>
+            <button class="btn" onclick="openLesson('Sosyal')">🌍 Sosyal Bilgiler</button>
+        </div>
+
+        <div id="topic-menu" class="content hidden">
+            <button onclick="showLessons()" class="btn" style="width:auto; padding:8px 15px;">⬅ Geri</button>
+            <h2 id="l-title"></h2>
+            <div id="t-list"></div>
+        </div>
+
+        <div id="check-screen" class="content hidden">
+            <h2 id="check-name"></h2>
+            <p style="font-size: 18px;">Bu konuyu anladın mı?</p>
+            <button class="btn" style="background: #dcfce7;" onclick="startQuizDirect()">✅ Evet, Anladım</button>
+            <button class="btn" style="background: #fee2e2;" onclick="showSummary()">❌ Hayır, Anlamadım</button>
+        </div>
+
+        <div id="summary-screen" class="content hidden">
+            <h2 id="sum-title">Özet</h2>
+            <div id="sum-text" class="summary-box"></div>
+            <button class="btn" style="background: var(--p); color: white;" onclick="startQuizDirect()">Teste Başla</button>
+        </div>
+
+        <div id="wrong-panel" class="content hidden">
+            <button onclick="showMain()" class="btn" style="width:auto; padding:8px 15px;">⬅ Geri</button>
+            <h2>❌ Yanlışların</h2>
+            <div id="wrong-list-area"></div>
+        </div>
+
+        <div id="q-area" class="content hidden">
+            <h3 id="q-title"></h3>
+            <p id="q-text" style="font-size: 20px; font-weight: bold;"></p>
+            <div id="opts"></div>
+            <button id="hint-btn" class="hint-btn" onclick="showHint()">💡 İpucu Al (-5 XP)</button>
+            <div id="hint-box" class="hint-box"></div>
+        </div>
+    </div>
+</div>
+
+<script>
+    let isLoginMode = true;
+    let users = JSON.parse(localStorage.getItem('eduUsers')) || {};
+    let xp = 0, rozet = 0;
+    let curL = "", curT = null, curQI = 0, isChallenge = false;
+    let hintUsed = false; // İpucu takibi
+    let missingTopics = new Set();
+    let wrongList = [];
+
+    const data = {
+        'Matematik': [
+            {n:"Tam Sayılarla İşlemler", sum:"Toplama, çıkarma, çarpma ve bölme.", q:[{t:"(-5) + (+2)?", a:"-7", b:"-3", c:"3", d:"7", dgr:"B", h:"Zıt işaretlilerde büyükten küçüğü çıkar, büyüğün işaretini koy."}, {t:"(-3) x (-4)?", a:"12", b:"-12", c:"7", d:"-7", dgr:"A", h:"Eksi ile eksinin çarpımı artıdır."}, {t:"(-10)/2?", a:"5", b:"-5", c:"2", d:"-2", dgr:"B", h:"Zıt işaretli sayıların bölümü negatiftir."}, {t:"0/5 kaçtır?", a:"0", b:"Tanımsız", c:"5", d:"1", dgr:"A", h:"Sıfırın bir sayıya bölümü her zaman sıfırdır."}, {t:"En küçük pozitif tam sayı?", a:"0", b:"1", c:"-1", d:"2", dgr:"B", h:"Pozitif sayılar 1'den başlar."}]},
+            {n:"Rasyonel Sayılar", sum:"a/b şeklindeki sayılar.", q:[{t:"1/2 ondalık?", a:"0,2", b:"0,5", c:"0,12", d:"1,2", dgr:"B", h:"Paydayı 10 yapacak şekilde genişlet."}, {t:"Payda 0 olabilir mi?", a:"Evet", b:"Hayır", c:"Bazen", d:"Belki", dgr:"B", h:"Payda 0 olursa ifade tanımsız olur."}, {t:"-3 rasyonel midir?", a:"Evet", b:"Hayır", c:"Sadece tam sayıdır", d:"Belirsiz", dgr:"A", h:"Her tam sayının altında gizli bir 1 paydası vardır."}, {t:"Hangisi büyüktür?", a:"1/2", b:"1/4", c:"1/8", d:"1/10", dgr:"A", h:"Paylar eşitse paydası küçük olan daha büyüktür."}, {t:"3/4 payı kaçtır?", a:"3", b:"4", c:"7", d:"1", dgr:"A", h:"Üstteki sayı pay, alttaki sayı paydadır."}]},
+            {n:"Rasyonel İşlemler", sum:"Payda eşitlemeyi unutma.", q:[{t:"1/2 + 1/2?", a:"1/4", b:"1", c:"2/2", d:"B ve C", dgr:"D", h:"Yarım artı yarım bir bütün eder."}, {t:"1/3 x 1/2?", a:"2/3", b:"1/6", c:"1/5", d:"1", dgr:"B", h:"Paylar çarpılıp paya, paydalar çarpılıp paydaya yazılır."}, {t:"Zıt işaretli çarpımı?", a:"Pozitif", b:"Negatif", c:"Sıfır", d:"1", dgr:"B", h:"Dostumun düşmanı düşmanımdır kuralını hatırla."}, {t:"0,2 x 5?", a:"1", b:"0,10", c:"0,5", d:"5", dgr:"A", h:"2/10 ile 5'i çarpmayı dene."}, {t:"1 - 1/2?", a:"1/2", b:"0", c:"2", d:"-1/2", dgr:"A", h:"Bütünden yarım çıkarsa ne kalır?"}]},
+            {n:"Denklemler", sum:"x'i yalnız bırak.", q:[{t:"x-2=5 ise x?", a:"3", b:"7", c:"10", d:"5", dgr:"B", h:"-2 karşıya +2 olarak geçer."}, {t:"2x=10 ise x?", a:"2", b:"5", c:"20", d:"12", dgr:"B", h:"Her iki tarafı da x'in katsayısına böl."}, {t:"x+1=0?", a:"1", b:"-1", c:"0", d:"2", dgr:"B", h:"Hangi sayıya 1 eklersek 0 olur?"}, {t:"x/3=3?", a:"1", b:"9", c:"6", d:"0", dgr:"B", h:"Bölü durumundaki 3 karşıya çarpı olarak geçer."}, {t:"5x=0?", a:"0", b:"5", c:"1", d:"-5", dgr:"A", h:"Çarpımı 0 yapan tek sayı nedir?"}]}
+        ],
+        'Fen': [
+            {n:"Uzay Araştırmaları", sum:"Teleskop ve uydular.", q:[{t:"Güneş bir yıldız mıdır?", a:"Evet", b:"Hayır", c:"Gezegendir", d:"Uydudur", dgr:"A", h:"Güneş, Dünya'ya en yakın yıldızdır."}, {t:"İlk uydu?", a:"Sputnik", b:"Apollo", c:"Türksat", d:"Bilsat", dgr:"A", h:"Rusların 1957'de gönderdiği uydudur."}, {t:"Ay'a ilk ayak basan?", a:"Gagarin", b:"Armstrong", c:"Newton", d:"Tesla", dgr:"B", h:"Küçük bir adım ama insanlık için büyük bir adım demişti."}, {t:"Teleskop kim buldu?", a:"Lippershey/Galileo", b:"Edison", c:"Bell", d:"Da Vinci", dgr:"A", h:"Gökyüzünü ilk inceleyenlerden biri Galileo'dur."}, {t:"Kızıl gezegen?", a:"Mars", b:"Venüs", c:"Merkür", d:"Ay", dgr:"A", h:"Demir oksit yüzünden kırmızı görünür."}]},
+            {n:"Hücre", sum:"Canlının en küçük birimi.", q:[{t:"Bitki hücresi şekli?", a:"Yuvarlak", b:"Köşeli", c:"Yıldız", d:"Düz", dgr:"B", h:"Hücre duvarı olduğu için daha sert ve şekillidir."}, {t:"Hücre yönetimi?", a:"Koful", b:"Çekirdek", c:"Zar", d:"Golgi", dgr:"B", h:"Hücrenin beyni burasıdır."}, {t:"Enerji santrali?", a:"Mitokondri", b:"Ribozom", c:"Zar", d:"Çeper", dgr:"A", h:"ATP üretiminin yapıldığı yerdir."}, {t:"Protein fabrikası?", a:"Ribozom", b:"Lizozom", c:"Zar", d:"Koful", dgr:"A", h:"Tüm hücrelerde bulunan en küçük organeldir."}, {t:"Hücre duvarı kimde var?", a:"Hayvan", b:"Bitki", c:"İnsan", d:"Sperm", dgr:"B", h:"Hayvanlarda bulunmaz, koruyucu dış katmandır."}]},
+            {n:"Mitoz", sum:"Onarım ve büyüme.", q:[{t:"Kromozom sayısı?", a:"Yarı", b:"Aynı", c:"Çift", d:"Dört", dgr:"B", h:"Kalıtsal özelliklerin değişmediği bölünme türüdür."}, {t:"Kaç hücre oluşur?", a:"1", b:"2", c:"4", d:"8", dgr:"B", h:"Bir hücre ikiye bölünür."}, {t:"Nerede görülür?", a:"Üreme", b:"Vücut", c:"Yumurta", d:"Deri", dgr:"B", h:"Yaraların iyileşmesi ve büyüme için gereklidir."}, {t:"Hazırlık evresi?", a:"İnterfaz", b:"Anafaz", c:"Telofaz", d:"Son", dgr:"A", h:"Bölünme başlamadan önceki evredir."}, {t:"Mitoz sonucu çeşitlilik?", a:"Var", b:"Yok", c:"Bazen", d:"Belki", dgr:"B", h:"Ana hücrenin tıpatıp aynısı oluşur."}]},
+            {n:"Mayoz", sum:"Üreme için.", q:[{t:"Kromozom?", a:"Yarı", b:"Aynı", c:"Çift", d:"Üç", dgr:"A", h:"Tür içi kromozom sayısının sabit kalmasını sağlar."}, {t:"Kaç hücre?", a:"2", b:"4", c:"1", d:"0", dgr:"B", h:"Mayoz 1 ve Mayoz 2 sonunda toplam sayı budur."}, {t:"Çeşitlilik?", a:"Yok", b:"Var (Parça değişimi)", c:"Bilinmez", d:"Az", dgr:"B", h:"Parça değişimi (crossing-over) sayesinde olur."}, {t:"Nerede?", a:"Deri", b:"Üreme ana", c:"Kas", d:"Kemik", dgr:"B", h:"Sadece üreme hücrelerini oluşturmak içindir."}, {t:"Döllenme sonrası?", a:"Zigot", b:"Embriyo", c:"Hücre", d:"Bebek", dgr:"A", h:"Yumurta ve spermin birleşmiş halidir."}]}
+        ],
+        'Turkce': [
+            {n:"Fiil Anlam", sum:"İş, oluş, durum.", q:[{t:"Koşmak?", a:"İş", b:"Durum", c:"Oluş", d:"Sıfat", dgr:"B", h:"Neyi/Kimi sorularına cevap vermez, hareket bildirir."}, {t:"Sararmak?", a:"İş", b:"Durum", c:"Oluş", d:"Zaman", dgr:"C", h:"Zamanla kendiliğinden olan değişimdir."}, {t:"Okumak?", a:"İş", b:"Durum", c:"Oluş", d:"Zarf", dgr:"A", h:"Neyi okumak? sorusuna cevap verir."}, {t:"Uzanmak?", a:"İş", b:"Durum", c:"Oluş", d:"Ek", dgr:"B", h:"O anki pozisyonu bildirir."}, {t:"Yaşlanmak?", a:"İş", b:"Oluş", c:"Durum", d:"Kip", dgr:"B", h:"Kendiliğinden olan bir süreçtir."}]},
+            {n:"Fiil Kipleri", sum:"Haber ve Dilek.", q:[{t:"-yor eki?", a:"Gelecek", b:"Şimdiki", c:"Geçmiş", d:"Geniş", dgr:"B", h:"Eylem şu an yapılıyor."}, {t:"-meli eki?", a:"İstek", b:"Gereklilik", c:"Şart", d:"Emir", dgr:"B", h:"Yapılması zorunlu olan durumlar."}, {t:"Gelecek zaman?", a:"-ecek", b:"-miş", c:"-di", d:"-r", dgr:"A", h:"Henüz yapılmamış ama yapılacak eylem."}, {t:"Emir kipi eki?", a:"Yok", b:"-e", c:"-se", d:"-malı", dgr:"A", h:"Bu kipin özel bir eki yoktur."}, {t:"-se/sa?", a:"Haber", b:"Şart", c:"İstek", d:"Emir", dgr:"B", h:"Eylemin gerçekleşmesi bir koşula bağlıdır."}]},
+            {n:"Ek Fiil", sum:"İsimleri yüklem yapar.", q:[{t:"İsim yüklemse?", a:"Fiil", b:"Ek-fiil", c:"Sıfat", d:"Zamir", dgr:"B", h:"İsim soylu sözcükleri yüklem yapan ek."}, {t:"Kaç görevi var?", a:"2", b:"1", c:"3", d:"4", dgr:"A", h:"İsimleri yüklem yapmak ve birleşik zamanlı fiil yapmak."}, {t:"-idi eki?", a:"Hikaye", b:"Rivayet", c:"Şart", d:"Geniş", dgr:"A", h:"Görülen geçmiş zamanın ek fiilidir."}, {t:"Geliyormuş?", a:"-idi", b:"-imiş", c:"-ise", d:"-dir", dgr:"B", h:"Başkalarından duyulan bir durumdur."}, {t:"Zengindir?", a:"Ek fiil", b:"Normal fiil", c:"İsim", d:"Zarf", dgr:"A", h:"Geniş zamanın ek fiilidir."}]},
+            {n:"Anlam Kayması", sum:"Zaman uyumsuzluğu.", q:[{t:"Yarın geliyoruz?", a:"Kayma var", b:"Yok", c:"Hata", d:"Sıfat", dgr:"A", h:"Zaman eki -yor ama anlam gelecek zamandır."}, {t:"Hergün yer?", a:"Kayma", b:"Uyumlu", c:"İsim", d:"Ek", dgr:"B", h:"Her gün geniş zaman bildirir."}, {t:"Dün gelir?", a:"Kayma", b:"Yok", c:"Bilinmez", d:"Zarf", dgr:"A", h:"Geçmişten bahsedilirken geniş zaman eki kullanılmış."}, {t:"Hoca biner?", a:"Zaman kayması", b:"Normal", c:"Hata", d:"Sıfat", dgr:"A", h:"Masalsı anlatımlarda geniş zaman kullanımıdır."}, {t:"Şimdi çıkar?", a:"Kayma", b:"Normal", c:"Hata", d:"Ek", dgr:"A", h:"Şu an olandan bahsederken geniş zaman kullanılmış."}]}
+        ],
+        'Sosyal': [
+            {n:"İletişim", sum:"Ben dili ve empati.", q:[{t:"Ben dili hangisidir?", a:"Sen suçlusun", b:"Üzülüyorum", c:"Git buradan", d:"Bakma", dgr:"B", h:"Kendi duygu ve düşüncelerini karşıyı suçlamadan anlatmaktır."}, {t:"Jest/Mimik?", a:"Sözlü", b:"Sözsüz", c:"Yazılı", d:"Hata", dgr:"B", h:"Beden dili ile yapılan iletişimdir."}, {t:"İletişim kaça ayrılır?", a:"3", b:"2", c:"1", d:"5", dgr:"A", h:"Sözlü, sözsüz ve yazılı olarak ayrılır."}, {t:"Önyargı?", a:"Olumlu", b:"Olumsuz", c:"Nötr", d:"İyi", dgr:"B", h:"Bir kişi hakkında önceden verilmiş genelde negatif karardır."}, {t:"Etkin dinleme?", a:"Göz teması", b:"Uyumak", c:"Kaçmak", d:"Bağırmak", dgr:"A", h:"Karşıdaki kişiyi anladığını hissettirmektir."}]},
+            {n:"Nüfus", sum:"Nüfus faktörleri.", q:[{t:"Doğal faktör?", a:"Sanayi", b:"İklim", c:"Tarım", d:"Ticaret", dgr:"B", h:"İnsanın etkisi olmadan doğada var olan durumdur."}, {t:"Nüfus artışı?", a:"Doğum", b:"Ölüm", c:"Göç", d:"Hepsi", dgr:"D", h:"Hem doğal hem de yapay (göç gibi) sebepleri düşün."}, {t:"En yoğun bölge?", a:"Marmara", b:"Doğu Anadolu", c:"İç Anadolu", d:"Karadeniz", dgr:"A", h:"Sanayi ve ulaşımın en geliştiği yerdir."}, {t:"Beşeri?", a:"Ulaşım", b:"Su", c:"Yer şekli", d:"Toprak", dgr:"A", h:"İnsan eliyle oluşturulan faktördür."}, {t:"TÜİK?", a:"Nüfus", b:"Sağlık", c:"Eğitim", d:"Spor", dgr:"A", h:"Türkiye İstatistik Kurumu'nun kısaltmasıdır."}]},
+            {n:"Kuruluş", sum:"1299.", q:[{t:"Osmanlı kurucu?", a:"Osman Bey", b:"Ertuğrul", c:"Orhan", d:"Fatih", dgr:"A", h:"Devlete adını veren kişidir."}, {t:"Başkent?", a:"Bursa", b:"Söğüt", c:"Edirne", d:"Hepsi", dgr:"D", h:"Osmanlı farklı zamanlarda bu yerlerin hepsini merkez yaptı."}, {t:"İlk ordu?", a:"Yaya/Müsellem", b:"Yeniçeri", c:"Sipahi", d:"Donanma", dgr:"A", h:"Orhan Bey döneminde kurulan düzenli birliklerdir."}, {t:"İskan?", a:"Savaş", b:"Yerleştirme", c:"Vergi", d:"Göç", dgr:"B", h:"Fethedilen yerlere Türk ailelerin yerleştirilmesidir."}, {t:"Boyumuz?", a:"Kayı", b:"Kınık", c:"Çepni", d:"Avşar", dgr:"A", h:"İki ok ve bir yay sembolü vardır."}]},
+            {n:"Fetih", sum:"Fatih dönemi.", q:[{t:"İstanbul?", a:"1453", b:"1071", c:"1299", d:"1923", dgr:"A", h:"Orta Çağ'ı kapatıp Yeni Çağ'ı açan olaydır."}, {t:"Fatih?", a:"2. Mehmet", b:"1. Mehmet", c:"2. Murat", d:"Yavuz", dgr:"A", h:"7 dil bilen entelektüel padişah."}, {t:"Preveze?", a:"Barbaros", b:"Piri Reis", c:"Turgut", d:"Fatih", dgr:"A", h:"Akdeniz'in Türk gölü haline geldiği zaferdir."}, {t:"Halife?", a:"Yavuz", b:"Fatih", c:"Kanuni", d:"Murat", dgr:"B", h:"Mısır seferinden sonra bu unvan alınmıştır."}, {t:"Donanma?", a:"Deniz", b:"Kara", c:"Hava", d:"Uzak", dgr:"A", h:"Gemi ve deniz askerlerinin tamamıdır."}]}
+        ]
+    };
+
+    function handleAuth() {
+        const u = document.getElementById('auth-user').value.trim();
+        const p = document.getElementById('auth-pass').value.trim();
+        if(!u || !p) { showToast("Doldur!", "error"); return; }
+        if(isLoginMode) {
+            if(users[u] && users[u] === p) { showToast("Giriş!", "success"); loginSuccess(u); }
+            else { showToast("Hata!", "error"); }
+        } else {
+            if(users[u]) { showToast("Var!", "error"); }
+            else { users[u] = p; localStorage.setItem('eduUsers', JSON.stringify(users)); showToast("Kayıt!", "success"); toggleAuth(); }
+        }
+    }
+
+    function toggleAuth() {
+        isLoginMode = !isLoginMode;
+        document.getElementById('auth-title').innerText = isLoginMode ? "Giriş Yap" : "Kayıt Ol";
+        document.getElementById('auth-btn').innerText = isLoginMode ? "Giriş" : "Kayıt";
+        document.getElementById('auth-toggle').innerText = isLoginMode ? "Kayıt Ol" : "Giriş Yap";
+    }
+
+    function loginSuccess(u) {
+        document.getElementById('auth-screen').classList.add('hidden');
+        document.getElementById('main-panel').classList.remove('hidden');
+        document.getElementById('welcome-msg').innerText = "Merhaba, " + u;
+        updateStats();
+    }
+
+    function logout() { location.reload(); }
+
+    function showMain() { hideAll(); document.getElementById('m-menu').classList.remove('hidden'); }
+    function showLessons() { hideAll(); document.getElementById('lesson-menu').classList.remove('hidden'); }
+    function hideAll() { 
+        document.getElementById('m-menu').classList.add('hidden');
+        document.getElementById('lesson-menu').classList.add('hidden');
+        document.getElementById('topic-menu').classList.add('hidden');
+        document.getElementById('check-screen').classList.add('hidden');
+        document.getElementById('summary-screen').classList.add('hidden');
+        document.getElementById('wrong-panel').classList.add('hidden');
+        document.getElementById('q-area').classList.add('hidden');
+    }
+
+    function openLesson(l) {
+        curL = l; hideAll();
+        document.getElementById('topic-menu').classList.remove('hidden');
+        document.getElementById('l-title').innerText = l;
+        const list = document.getElementById('t-list'); list.innerHTML = "";
+        data[l].forEach((t, i) => { list.innerHTML += `<button class="btn" onclick="askStatus('${l}', ${i})">${t.n}</button>`; });
+    }
+
+    function askStatus(l, i) {
+        curL = l; curT = data[l][i]; isChallenge = false; hideAll();
+        document.getElementById('check-screen').classList.remove('hidden');
+        document.getElementById('check-name').innerText = curT.n;
+    }
+
+    function showSummary() {
+        hideAll(); document.getElementById('summary-screen').classList.remove('hidden');
+        document.getElementById('sum-text').innerText = curT.sum;
+    }
+
+    function startQuizDirect() { curQI = 0; hideAll(); document.getElementById('q-area').classList.remove('hidden'); loadQuestion(); }
+
+    function loadQuestion() {
+        hintUsed = false; // Her soruda ipucu kullanımını sıfırla
+        document.getElementById('hint-box').style.display = 'none'; // Kutuyu gizle
+        document.getElementById('hint-btn').style.display = 'block'; // Butonu göster
+        
+        let q = curT.q[curQI];
+        document.getElementById('q-title').innerText = curT.n + " - " + (curQI+1);
+        document.getElementById('q-text').innerText = q.t;
+        const box = document.getElementById('opts'); box.innerHTML = "";
+        ['a','b','c','d'].forEach(o => { box.innerHTML += `<button class="opt-btn" onclick="checkAnswer('${o.toUpperCase()}')">${o.toUpperCase()}) ${q[o]}</button>`; });
+    }
+
+    function showHint() {
+        hintUsed = true;
+        const box = document.getElementById('hint-box');
+        box.innerText = curT.q[curQI].h || "Bu soru için ipucu yok.";
+        box.style.display = 'block';
+        document.getElementById('hint-btn').style.display = 'none'; // İpucu alınınca butonu sakla
+    }
+
+    function checkAnswer(ans) {
+        let q = curT.q[curQI];
+        if(ans === q.dgr) { 
+            let p = hintUsed ? 5 : 10; // İpucu kullanıldıysa 5, kullanılmadıysa 10 XP
+            xp += p; 
+            showToast(`🎯 Doğru! (+${p} XP)`, "success"); 
+        }
+        else {
+            showToast(`❌ Yanlış! Doğru: ${q.dgr}`, "error");
+            wrongList.push({t: q.t, d: q.dgr, topic: curT.n});
+            if(!isChallenge) {
+                missingTopics.add(JSON.stringify({l: curL, n: curT.n}));
+            }
+        }
+        curQI++;
+        setTimeout(() => {
+            if(curQI < curT.q.length) { loadQuestion(); }
+            else { rozet++; showToast("🏆 Bitti!", "success"); updateStats(); showMain(); }
+        }, 600);
+    }
+
+    function openWrongList() {
+        hideAll(); document.getElementById('wrong-panel').classList.remove('hidden');
+        const area = document.getElementById('wrong-list-area');
+        area.innerHTML = wrongList.length === 0 ? "Harikasın!" : "";
+        wrongList.forEach(w => { area.innerHTML += `<div class="wrong-item"><b>[${w.topic}]</b> ${w.t}<br>✅ Doğru: ${w.d}</div>`; });
+    }
+
+    function openMissing() {
+        hideAll(); document.getElementById('topic-menu').classList.remove('hidden');
+        document.getElementById('l-title').innerText = "Eksik Konuların";
+        const list = document.getElementById('t-list'); list.innerHTML = "";
+        if(missingTopics.size === 0) list.innerHTML = "Eksiğin yok!";
+        missingTopics.forEach(s => {
+            let it = JSON.parse(s);
+            list.innerHTML += `<button class="btn" onclick="askStatus('${it.l}', ${data[it.l].findIndex(x=>x.n===it.n)})">${it.l}: ${it.n}</button>`;
+        });
+    }
+
+    function startChallenge() {
+        isChallenge = true;
+        let allQ = [];
+        Object.keys(data).forEach(l => data[l].forEach(t => t.q.forEach(q => allQ.push({q:q, n:t.n}))));
+        let shuf = allQ.sort(() => 0.5 - Math.random()).slice(0, 10);
+        curT = {n: "Challenge", q: shuf.map(x => x.q)};
+        startQuizDirect();
+    }
+
+    function showToast(m, t) {
+        const c = document.getElementById('toast-container');
+        const d = document.createElement('div');
+        d.className = `toast ${t === 'success' ? 'success' : 'error'}`;
+        d.innerText = m; c.appendChild(d);
+        setTimeout(() => { d.style.opacity = '0'; setTimeout(() => d.remove(), 500); }, 2000);
+    }
+
+    function updateStats() {
+        document.getElementById('xp').innerText = xp;
+        document.getElementById('lvl').innerText = Math.floor(xp/200) + 1;
+        document.getElementById('rz').innerText = rozet;
+        document.getElementById('w-count').innerText = wrongList.length;
+        document.getElementById('m-count').innerText = missingTopics.size;
+    }
+</script>
+</body>
+</html>
